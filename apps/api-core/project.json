@@ -1,0 +1,131 @@
+{
+  "name": "api-core",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/api-core/src",
+  "projectType": "application",
+  "targets": {
+    "build": {
+      "executor": "@nrwl/webpack:webpack",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "target": "node",
+        "compiler": "tsc",
+        "outputPath": "dist/apps/api-core",
+        "main": "apps/api-core/src/main.ts",
+        "tsConfig": "apps/api-core/tsconfig.app.json",
+        "assets": ["apps/api-core/src/assets"]
+      },
+      "configurations": {
+        "production": {
+          "optimization": true,
+          "extractLicenses": true,
+          "inspect": false,
+          "fileReplacements": [
+            {
+              "replace": "apps/api-core/src/environments/environment.ts",
+              "with": "apps/api-core/src/environments/environment.prod.ts"
+            }
+          ]
+        }
+      }
+    },
+    "serve": {
+      "executor": "@nrwl/js:node",
+      "options": {
+        "buildTarget": "api-core:build",
+        "inspect": false
+      },
+      "configurations": {
+        "debug": {
+          "buildTarget": "api-core:build",
+          "inspect": true
+        },
+        "production": {
+          "buildTarget": "api-core:build:production",
+          "watch": false
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["apps/api-core/**/*.ts"]
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "apps/api-core/jest.config.ts",
+        "passWithNoTests": true
+      }
+    },
+    "typeorm": {
+      "executor": "nx:run-commands",
+      "outputs": [],
+      "options": {
+        "command": "env-cmd -f ./.env ts-node --project tsconfig.app.json -r tsconfig-paths/register ./../../node_modules/typeorm/cli.js",
+        "cwd": "apps/api-core"
+      }
+    },
+    "db-migration-create": {
+      "executor": "nx:run-commands",
+      "outputs": [],
+      "options": {
+        "command": "nx run api-core:typeorm -- migration:create ./src/app/db/migrations/{args.name}",
+        "cwd": "apps/api-core"
+      }
+    },
+    "db-migration-generate": {
+      "executor": "nx:run-commands",
+      "outputs": [],
+      "options": {
+        "command": "nx run api-core:typeorm -- --dataSource=src/app/db/data-source.ts migration:generate ./src/app/db/migrations/{args.name}",
+        "cwd": "apps/api-core"
+      }
+    },
+    "db-migration-revert": {
+      "executor": "nx:run-commands",
+      "outputs": [],
+      "options": {
+        "command": "nx run api-core:typeorm -- --dataSource=src/app/db/data-source.ts migration:revert",
+        "cwd": "apps/api-core"
+      }
+    },
+    "db-migration-run": {
+      "executor": "nx:run-commands",
+      "outputs": [],
+      "options": {
+        "command": "nx run api-core:typeorm -- --dataSource=src/app/db/data-source.ts migration:run",
+        "cwd": "apps/api-core"
+      }
+    },
+    "db-schema-drop": {
+      "executor": "nx:run-commands",
+      "outputs": [],
+      "options": {
+        "command": "nx run api-core:typeorm -- --dataSource=src/app/db/data-source.ts schema:drop",
+        "cwd": "apps/api-core"
+      }
+    },
+    "db-seed-run": {
+      "executor": "nx:run-commands",
+      "outputs": [],
+      "options": {
+        "command": "ts-node --project tsconfig.app.json -r tsconfig-paths/register ./src/app/db/seeds/run-seed.ts",
+        "cwd": "apps/api-core"
+      }
+    },
+    "start": {
+      "command": "apps/api-core/bin/run-app.sh"
+    },
+    "deps-up": {
+      "command": "docker-compose -f compose/docker-compose.yml up -d"
+    },
+    "deps-down": {
+      "command": "docker-compose -f compose/docker-compose.yml down --remove-orphans"
+    }
+  },
+  "tags": []
+}
